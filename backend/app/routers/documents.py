@@ -3,6 +3,7 @@ import uuid
 import fitz  # PyMuPDF
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from sqlalchemy.orm import Session
+import re
 
 from app.core.auth import get_current_user, CurrentUser
 from app.core.database import get_db
@@ -52,18 +53,23 @@ async def upload_document(
             detail="No extractable text found. Scanned/image-only PDFs need OCR (not yet supported).",
         )
 
-    # 2. Upload original file to Supabase Storage
-    storage_path = f"{user.id}/{uuid.uuid4()}_{file.filename}"
+    # 2. Filename ko clean kar rahe hain (emojis, arrows, spaces hategi)
+    clean_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', file.filename)
+    
+    # Path mein clean_filename use kar rahe hain
+    storage_path = f"{user.id}/{uuid.uuid4()}_{clean_filename}"
+    
+    # 3. Upload cleaned file to Supabase Storage
     supabase.storage.from_(settings.supabase_storage_bucket).upload(
         storage_path,
         file_bytes,
         file_options={"content-type": "application/pdf"},
     )
 
-    # 3. Save document metadata
+    # 4. Save document metadata
     document = Document(
         user_id=user.id,
-        filename=file.filename,
+        filename=clean_filename,
         storage_path=storage_path,
         page_count=page_count,
         char_count=len(full_text),
