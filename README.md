@@ -1,10 +1,29 @@
 # PDF → E-Course Learning Platform
 
-## Day 1 scope (done here)
+## Day 1 scope (done)
 - Supabase Auth (Google OAuth) — frontend login + callback
 - PDF upload endpoint — extracts text via PyMuPDF, stores file in Supabase Storage,
   saves metadata (documents table)
 - DB schema for the full app (schema.sql) — run this once in Supabase SQL editor
+
+## Day 2 scope (done)
+- Text chunking (`app/services/chunking.py`) — overlapping word-based chunks
+- Local embeddings (`app/services/embeddings.py`) — sentence-transformers,
+  all-MiniLM-L6-v2, 384-dim, free/no API cost
+- Vector storage (`app/services/vector_store.py`) — chunks + embeddings persisted
+  to `document_chunks` (pgvector), with a cosine-similarity retrieval function
+  ready for the Day 4 RAG chatbot
+- AI course generation (`app/core/llm.py` + `app/routers/courses.py`) — Groq LLM
+  turns extracted text into a structured course (title, objectives, chapters,
+  lessons) as strict JSON, persisted to courses/chapters/lessons tables
+- New endpoints: `POST /courses/generate/{document_id}`, `GET /courses/`,
+  `GET /courses/{course_id}`
+
+### Auth note
+Backend auth verification (`app/core/auth.py`) uses the official Supabase
+Python client's `auth.get_user(token)` rather than manual JWT decoding — this
+works regardless of whether the project uses the legacy shared HS256 secret
+or the newer asymmetric signing keys, so no extra config is needed either way.
 
 ## Database schema
 
