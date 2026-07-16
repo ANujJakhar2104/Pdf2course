@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.models import models  # noqa: ensures models are registered before create_all
-from app.routers import documents
+from app.routers import documents, courses
 
 app = FastAPI(title="PDF to E-Course Platform API")
 
@@ -17,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(documents.router)
+app.include_router(courses.router)
 
 
 @app.on_event("startup")
